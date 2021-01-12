@@ -1,24 +1,33 @@
 #!/usr/bin/env bash
-#
-# katharinegillis/androidstudio ellipsis package
 
-# The following hooks can be defined to customize behavior of your package:
-# pkg.install() {
-#     fs.link_files $PKG_PATH
-# }
+pkg.link() {
+    [ -d "$PKG_PATH/files" ] && fs.link_files files
+}
 
-# pkg.push() {
-#     git.push
-# }
+pkg.install() {
+    # Install Android Studio
+    bash $PKG_PATH/run.sh "$ELLIPSIS_SRC" "$PKG_PATH"
+}
 
-# pkg.pull() {
-#     git.pull
-# }
+pkg.pull() {
+    # Check for updates on git
+    git remote update 2>&1 > /dev/null
+    if git.is_behind; then
+        # Unlink old files
+        hooks.unlink
 
-# pkg.installed() {
-#     git.status
-# }
-#
-# pkg.status() {
-#     git.diffstat
-# }
+        # Pull package changes
+        git.pull
+
+        # Link new files
+        pkg.link
+    fi
+
+    # Update Android Studio
+    bash $PKG_PATH/run.sh "$ELLIPSIS_SRC" "$PKG_PATH"
+}
+
+pkg.uninstall() {
+    # Remove Android Studio
+    bash $PKG_PATH/uninstall.sh "$ELLIPSIS_SRC"
+}
